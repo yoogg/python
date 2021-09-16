@@ -136,11 +136,13 @@ class py_excel:
             imglist.append(imgpath)
         return imglist
 
-    def savePic(self,PicNames=[],picFormat='jpg',shtNo=0):
+    def savePic(self,PicNames=[],picFormat='png',shtNo=0):
         self._sht = self._wkb.Worksheets[shtNo]             #第一个工作表
         from sys import argv
         dirList = argv[0].split('\\')[:-1]
-        newDir = '\\'.join(dirList)
+        newDir = '\\'.join(dirList)+'\\img'
+        if not os.path.exists(newDir):  #检查文件夹是否存在，如果不存在，就创建
+            os.makedirs(newDir)
         self._picPaths = []
         for pic in PicNames:
             # print(self._sht.name)
@@ -161,7 +163,9 @@ class py_excel:
         self._sht = self._wkb.Worksheets[shtNo]             #第一个工作表
         from sys import argv
         dirList = argv[0].split('\\')[:-1]
-        newDir = '\\'.join(dirList)
+        newDir = '\\'.join(dirList)+'\\img'
+        if not os.path.exists(newDir):  #检查文件夹是否存在，如果不存在，就创建
+            os.makedirs(newDir)
         self._picPaths = []
         # print(self._sht.name)
         if isinstance(PicIndex,int):       #isinstance() 函数来判断一个对象是否是一个已知的类型，如判断PicIndex是否是整数型
