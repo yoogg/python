@@ -20,7 +20,7 @@ class py_excel:
             self._wkb = self._app.Workbooks.Add()    #如果没有工作簿，则增加工作簿
         else:
             self._wkb = self._app.Workbooks.Open(wkbPath)   #打开工作簿
-        self._sht = self._wkb.Worksheets[shtNo]             #第一个工作表
+        #self._sht = self._wkb.Worksheets[shtNo]             #第一个工作表
     
     @property
     def workbook(self):
