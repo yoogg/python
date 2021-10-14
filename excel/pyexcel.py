@@ -4,6 +4,7 @@
 #pip install pywin32
 import os
 import time
+import datetime
 from PIL import ImageGrab
 try:
     from win32com.client import Dispatch
@@ -16,11 +17,12 @@ class py_excel:
             os.system('taskkill /F /IM EXCEL.EXE')   #关闭excel进程
         self._app = Dispatch('excel.application')    #打开excel程序
         self._app.Visible = 1
+        self._app.DisplayAlerts = False #忽略警告
         if wkbPath == '':
             self._wkb = self._app.Workbooks.Add()    #如果没有工作簿，则增加工作簿
         else:
             self._wkb = self._app.Workbooks.Open(wkbPath)   #打开工作簿
-        #self._sht = self._wkb.Worksheets[shtNo]             #第一个工作表
+        self._sht = self._wkb.Worksheets[shtNo]             #第一个工作表
     
     @property
     def workbook(self):
@@ -42,8 +44,11 @@ class py_excel:
             if not os.path.exists(saveDir):                 #检查文件夹是否存在，如果不存在，就创建
                 os.makedirs(saveDir)
             # self._wkb.Save()
+            
             self._wkb.SaveAs(savePath)                      #self._wkb保存在此路径下
             self._wkb.Close(1)
+            self._app.DisplayAlerts = True
+            self._app.Quit()
             # self._app.DisplayAlerts = False
             # self._app.Quit()
             # self._app.DisplayAlerts = True
@@ -83,7 +88,7 @@ class py_excel:
     def getAll(self,shtNo=0):
         if shtNo!=0:
             self._sht = self._wkb.Worksheets[shtNo]       #第一个工作表
-        return self._sht.UsedRange()
+        return self._sht.UsedRange.Address
 
     def getTxt(self,fanwei,sht=''):
         if sht!='':
@@ -94,6 +99,7 @@ class py_excel:
         '''自动截取现有数据区域的图片
         如果取默认值则遍历所有sheet
         '''
+        time.sleep(3)
         sheetnameList = []
         if sheetNames == '':
             for sht in self._wkb.Sheets:
@@ -114,7 +120,8 @@ class py_excel:
         for shp in self._sht.Shapes:
             shp.Delete()
         # 截图 保存到本地
-        self._sht.UsedRange.CopyPicture()
+        pdz=self._sht.UsedRange.Address
+        self._sht.Range(pdz).CopyPicture()
         time.sleep(2)
         self._sht.Paste()
         for shp in self._sht.Shapes:
@@ -224,3 +231,32 @@ class py_excel:
                 startCol += 1
             startRow += 1
         print(':' * 20,'Wrote',':' * 20)
+        
+class list_excel:
+    def __new__(self,paths='',type="xlsx",saveas='',dt=-1):
+        file_list = os.listdir(paths)
+        self.savefiles = []
+        #遍历该路径下的文件并存到file_list列表中
+        for i in file_list:
+        #循环依次取出列file_list表中的文件名执行下一步操作
+            if i.startswith('~$'):
+                continue
+            #判断文件是否为~$，如果是，跳过
+            if os.path.splitext(i)[1] == '.'+type:
+                #判断文件后缀是否为.xlsx
+                td=(datetime.datetime.now()+datetime.timedelta(days=dt)).strftime("%Y%m%d")
+                dizhi=paths + "\\" + i
+                py_excel(dizhi).refresh(5)
+                if saveas !='':
+                    newpath=saveas + "\\" +os.path.splitext(i)[0]+td+os.path.splitext(i)[1]
+                    print(newpath)
+                    time.sleep(5)
+                    py_excel(dizhi).close(newpath)
+                    self.savefiles.append(newpath)
+                else:
+                    time.sleep(5)
+                    self.savefiles.append(dizhi)
+                #打印输出所在路径和文件名
+                #workbook = app.books.open(file_path + "\\" + i)
+        print(self.savefiles)
+        return self.savefiles
